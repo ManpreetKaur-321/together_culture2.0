@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2>Member Dashboard</h2>
+<p><strong>Username:</strong> {{ profile.user.username }}</p>
+<p><strong>Email:</strong> {{ profile.user.email }}</p>
+<p><strong>Interests:</strong> {{ profile.get_interests_display }}</p>
+<p><strong>Membership Type:</strong> {{ profile.membership_type }}</p>
+<p><strong>Orientation Info:</strong> {{ profile.orientation_info }}</p>
+<p><strong>Authorized:</strong> {{ profile.is_authorized }}</p>
+{% endblock %} 
