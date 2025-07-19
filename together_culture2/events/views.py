@@ -9,7 +9,8 @@ from members.models import MemberProfile
 
 @login_required
 def event_list(request):
-    events = Event.objects.all().order_by('date')
+    # Exclude digital content events - only show regular events
+    events = Event.objects.filter(is_digital=False).order_by('date')
     return render(request, 'events/event_list.html', {'events': events})
 
 @login_required

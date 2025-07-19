@@ -19,9 +19,12 @@ def dashboard(request):
     member = request.user.memberprofile
     bookings = Booking.objects.filter(member=member).order_by('-booked_at')
     
-    # Get available events that are not booked
+    # Get available events that are not booked and not digital content
     booked_event_ids = Booking.objects.filter(member=member).values_list('event_id', flat=True)
-    available_events = Event.objects.exclude(id__in=booked_event_ids).filter(is_active=True).order_by('date')
+    available_events = Event.objects.exclude(id__in=booked_event_ids).filter(
+        is_active=True, 
+        is_digital=False
+    ).order_by('date')
     
     context = {
         'member': member,
