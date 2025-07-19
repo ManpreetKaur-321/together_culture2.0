@@ -1,90 +1,216 @@
 {% extends 'base.html' %}
 {% block content %}
-<div class="card p-4 mb-4">
-    <h2>Member Dashboard</h2>
-    <p><strong>Username:</strong> {{ profile.user.username }}</p>
-    <p><strong>Email:</strong> {{ profile.user.email }}</p>
-    <p><strong>Interests:</strong> {{ profile.get_interests_display }}</p>
-    <p><strong>Membership Type:</strong> {{ profile.membership_type }}</p>
-    <p><strong>Orientation Info:</strong> {{ profile.orientation_info }}</p>
-    <p><strong>Authorized:</strong> {{ profile.is_authorized }}</p>
-</div>
-
-<div class="row">
-    <div class="col-md-6">
-        <div class="card p-3 mb-4">
-            <h3>Approved Bookings</h3>
-            <table class="table table-striped">
-                <thead>
-                    <tr><th>Event</th><th>Date</th><th></th></tr>
-                </thead>
-                <tbody>
-                {% for booking in approved_bookings %}
-                    <tr>
-                        <td>{{ booking.event.title }}</td>
-                        <td>{{ booking.event.date }}</td>
-                        <td>
-                            <form action="{% url 'cancel_booking' booking.id %}" method="post" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Cancel</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr><td colspan="3">No approved bookings.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    <div class="col-md-6">
-        <div class="card p-3 mb-4">
-            <h3>Pending Approvals</h3>
-            <table class="table table-striped">
-                <thead>
-                    <tr><th>Event</th><th>Date</th><th>Status</th></tr>
-                </thead>
-                <tbody>
-                {% for booking in pending_bookings %}
-                    <tr>
-                        <td>{{ booking.event.title }}</td>
-                        <td>{{ booking.event.date }}</td>
-                        <td><span class="badge bg-warning">Pending</span></td>
-                    </tr>
-                {% empty %}
-                    <tr><td colspan="3">No pending bookings.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">Member Dashboard</h1>
+            <a href="{% url 'profile' %}" class="btn btn-primary">My Profile</a>
         </div>
     </div>
 </div>
 
+<!-- Member Info Card -->
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Welcome, {{ member.user.username }}!</h5>
+            </div>
+            <div class="card-body">
+                <p><strong>Interest:</strong> <span class="badge bg-info">{{ member.get_interests_display }}</span></p>
+                <p><strong>Membership:</strong> 
+                    {% if member.membership_type %}
+                        {{ member.membership_type.name }}
+                    {% else %}
+                        <span class="text-muted">Not assigned</span>
+                    {% endif %}
+                </p>
+                <p><strong>Status:</strong> 
+                    {% if member.is_authorized %}
+                        <span class="badge bg-success">Authorized</span>
+                    {% else %}
+                        <span class="badge bg-warning">Pending Authorization</span>
+                    {% endif %}
+                </p>
+                <p><strong>Member Since:</strong> {{ member.created_at|date:"M d, Y" }}</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-8">
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card text-center bg-primary text-white">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ bookings.count }}</h3>
+                        <p class="card-text">Total Bookings</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center bg-success text-white">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ approved_bookings.count }}</h3>
+                        <p class="card-text">Approved</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card text-center bg-warning text-dark">
+                    <div class="card-body">
+                        <h3 class="card-title">{{ pending_bookings.count }}</h3>
+                        <p class="card-text">Pending</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Approved Bookings -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>My Approved Bookings</h5>
+            </div>
+            <div class="card-body">
+                {% if approved_bookings %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Booked On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in approved_bookings %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ booking.event.title }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ booking.event.description|truncatewords:10 }}</small>
+                                    </td>
+                                    <td>{{ booking.event.date|date:"M d, Y" }}</td>
+                                    <td>{{ booking.event.location }}</td>
+                                    <td>{{ booking.booked_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'cancel_booking' booking.id %}" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                            Cancel
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No approved bookings yet.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Pending Bookings -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>My Pending Bookings</h5>
+            </div>
+            <div class="card-body">
+                {% if pending_bookings %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Location</th>
+                                    <th>Booked On</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in pending_bookings %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ booking.event.title }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ booking.event.description|truncatewords:10 }}</small>
+                                    </td>
+                                    <td>{{ booking.event.date|date:"M d, Y" }}</td>
+                                    <td>{{ booking.event.location }}</td>
+                                    <td>{{ booking.booked_at|date:"M d, Y H:i" }}</td>
+                                    <td>
+                                        <a href="{% url 'cancel_booking' booking.id %}" 
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Are you sure you want to cancel this booking?')">
+                                            Cancel
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No pending bookings.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Events -->
 <div class="row">
     <div class="col-12">
-        <div class="card p-3 mb-4">
-            <h3>Available Events</h3>
-            <table class="table table-striped">
-                <thead>
-                    <tr><th>Event</th><th>Date</th><th></th></tr>
-                </thead>
-                <tbody>
-                {% for event in available_events %}
-                    <tr>
-                        <td>{{ event.title }}</td>
-                        <td>{{ event.date }}</td>
-                        <td>
-                            <form action="{% url 'book_event' event.id %}" method="post" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-primary">Request Booking</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% empty %}
-                    <tr><td colspan="3">No available events to book.</td></tr>
-                {% endfor %}
-                </tbody>
-            </table>
+        <div class="card">
+            <div class="card-header">
+                <h5>Available Events</h5>
+            </div>
+            <div class="card-body">
+                {% if available_events %}
+                    <div class="row">
+                        {% for event in available_events %}
+                        <div class="col-md-6 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ event.title }}</h5>
+                                    <p class="card-text">{{ event.description|truncatewords:20 }}</p>
+                                    <div class="row">
+                                        <div class="col-6">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar"></i> {{ event.date|date:"M d, Y" }}
+                                            </small>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">
+                                                <i class="fas fa-map-marker-alt"></i> {{ event.location }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    <div class="mt-3">
+                                        <a href="{% url 'book_event' event.id %}" class="btn btn-primary btn-sm">
+                                            Book Event
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No available events at the moment.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>

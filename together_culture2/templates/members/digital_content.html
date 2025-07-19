@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">Digital Content Modules</h1>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<!-- Digital Content Overview -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Available Digital Content</h5>
+            </div>
+            <div class="card-body">
+                {% if digital_events %}
+                    <div class="row">
+                        {% for event in digital_events %}
+                        <div class="col-md-6 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title">{{ event.title }}</h5>
+                                        <span class="badge bg-info">Digital</span>
+                                    </div>
+                                    <p class="card-text">{{ event.description|truncatewords:30 }}</p>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-6">
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar"></i> {{ event.date|date:"M d, Y" }}
+                                            </small>
+                                        </div>
+                                        <div class="col-6">
+                                            <small class="text-muted">
+                                                <i class="fas fa-tag"></i> {{ event.get_event_type_display }}
+                                            </small>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if event.tags.all %}
+                                        <div class="mb-3">
+                                            {% for tag in event.tags.all %}
+                                                <span class="badge bg-secondary me-1">{{ tag.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        {% if event.digital_content_url %}
+                                            <a href="{{ event.digital_content_url }}" target="_blank" class="btn btn-primary btn-sm">
+                                                <i class="fas fa-external-link-alt"></i> Access Content
+                                            </a>
+                                        {% else %}
+                                            <span class="text-muted">Content URL not available</span>
+                                        {% endif %}
+                                        
+                                        <a href="{% url 'book_event' event.id %}" class="btn btn-outline-success btn-sm">
+                                            <i class="fas fa-bookmark"></i> Book Module
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No digital content modules available at the moment.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Learning Progress -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>My Learning Progress</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-primary">{{ digital_events.count }}</h4>
+                            <p class="mb-0">Available Modules</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-success">{{ member.bookings.filter.is_approved.count }}</h4>
+                            <p class="mb-0">Completed Modules</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-warning">{{ member.bookings.filter.is_approved.count }}</h4>
+                            <p class="mb-0">In Progress</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="border rounded p-3">
+                            <h4 class="text-info">{{ member.bookings.filter.is_approved.count }}</h4>
+                            <p class="mb-0">Certificates Earned</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
