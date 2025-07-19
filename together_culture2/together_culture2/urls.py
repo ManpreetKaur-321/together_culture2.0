@@ -19,7 +19,10 @@ from django.urls import path
 from django.conf import settings
 from django.conf.urls.static import static
 from users.views import register, CustomLoginView, custom_logout
-from members.views import dashboard, cancel_booking, profile, manage_members, member_detail, benefits_dashboard, digital_content
+from members.views import (
+    dashboard, cancel_booking, profile, manage_members, member_detail, 
+    benefits_dashboard, digital_content, manage_benefits, manage_digital_content
+)
 from events.views import event_list, book_event
 from dashboard.views import admin_dashboard, test_view, debug_admin_dashboard
 
@@ -40,6 +43,8 @@ urlpatterns = [
     path('admin-dashboard/', admin_dashboard, name='admin_dashboard'),
     path('manage-members/', manage_members, name='manage_members'),
     path('member-detail/<int:member_id>/', member_detail, name='member_detail'),
+    path('manage-benefits/', manage_benefits, name='manage_benefits'),
+    path('manage-digital-content/', manage_digital_content, name='manage_digital_content'),
 ]
 
 # Serve media files in development

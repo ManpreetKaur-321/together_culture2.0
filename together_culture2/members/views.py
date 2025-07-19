@@ -202,3 +202,110 @@ def member_detail(request, member_id):
         'pending_bookings': bookings.filter(is_approved=False).count(),
     }
     return render(request, 'members/member_detail.html', context)
+
+# Admin views for managing benefits and digital content
+
+@login_required
+def manage_benefits(request):
+    """Admin view to manage benefits"""
+    if request.user.role != User.ADMIN:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('dashboard')
+    
+    benefits = Benefit.objects.all().order_by('-created_at')
+    membership_types = MembershipType.objects.all()
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create_benefit':
+            name = request.POST.get('name')
+            description = request.POST.get('description')
+            benefit_type = request.POST.get('benefit_type')
+            membership_type_ids = request.POST.getlist('membership_types')
+            
+            if name and description and benefit_type:
+                benefit = Benefit.objects.create(
+                    name=name,
+                    description=description,
+                    benefit_type=benefit_type
+                )
+                benefit.membership_types.set(membership_type_ids)
+                messages.success(request, f'Benefit "{name}" created successfully.')
+                
+        elif action == 'update_benefit':
+            benefit_id = request.POST.get('benefit_id')
+            benefit = get_object_or_404(Benefit, id=benefit_id)
+            benefit.name = request.POST.get('name', benefit.name)
+            benefit.description = request.POST.get('description', benefit.description)
+            benefit.benefit_type = request.POST.get('benefit_type', benefit.benefit_type)
+            benefit.is_active = request.POST.get('is_active') == 'on'
+            benefit.save()
+            
+            membership_type_ids = request.POST.getlist('membership_types')
+            benefit.membership_types.set(membership_type_ids)
+            messages.success(request, f'Benefit "{benefit.name}" updated successfully.')
+            
+        elif action == 'delete_benefit':
+            benefit_id = request.POST.get('benefit_id')
+            benefit = get_object_or_404(Benefit, id=benefit_id)
+            benefit_name = benefit.name
+            benefit.delete()
+            messages.success(request, f'Benefit "{benefit_name}" deleted successfully.')
+    
+    context = {
+        'benefits': benefits,
+        'membership_types': membership_types,
+    }
+    return render(request, 'members/manage_benefits.html', context)
+
+@login_required
+def manage_digital_content(request):
+    """Admin view to manage digital content"""
+    if request.user.role != User.ADMIN:
+        messages.error(request, 'Access denied. Admin privileges required.')
+        return redirect('dashboard')
+    
+    digital_events = Event.objects.filter(is_digital=True).order_by('-date')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'create_digital_event':
+            title = request.POST.get('title')
+            description = request.POST.get('description')
+            content_url = request.POST.get('content_url')
+            event_date = request.POST.get('event_date')
+            
+            if title and description and content_url:
+                Event.objects.create(
+                    title=title,
+                    description=description,
+                    digital_content_url=content_url,
+                    date=event_date,
+                    is_digital=True,
+                    is_active=True
+                )
+                messages.success(request, f'Digital content "{title}" created successfully.')
+                
+        elif action == 'update_digital_event':
+            event_id = request.POST.get('event_id')
+            event = get_object_or_404(Event, id=event_id)
+            event.title = request.POST.get('title', event.title)
+            event.description = request.POST.get('description', event.description)
+            event.digital_content_url = request.POST.get('content_url', event.digital_content_url)
+            event.is_active = request.POST.get('is_active') == 'on'
+            event.save()
+            messages.success(request, f'Digital content "{event.title}" updated successfully.')
+            
+        elif action == 'delete_digital_event':
+            event_id = request.POST.get('event_id')
+            event = get_object_or_404(Event, id=event_id)
+            event_name = event.title
+            event.delete()
+            messages.success(request, f'Digital content "{event_name}" deleted successfully.')
+    
+    context = {
+        'digital_events': digital_events,
+    }
+    return render(request, 'members/manage_digital_content.html', context)
