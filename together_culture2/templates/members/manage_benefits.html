@@ -1,0 +1,320 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">Manage Benefits</h1>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBenefitModal">
+                <i class="fas fa-plus me-2"></i>Add New Benefit
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Benefits Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ benefits.count }}</h3>
+                <p class="card-text">Total Benefits</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ benefits|length }}</h3>
+                <p class="card-text">Active Benefits</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-dark">
+            <div class="card-body">
+                <h3 class="card-title">{{ membership_types.count }}</h3>
+                <p class="card-text">Membership Types</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ benefits|length }}</h3>
+                <p class="card-text">Event Benefits</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Benefits List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>All Benefits</h5>
+            </div>
+            <div class="card-body">
+                {% if benefits %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Membership Types</th>
+                                    <th>Status</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for benefit in benefits %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ benefit.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ benefit.get_benefit_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ benefit.description|truncatewords:10 }}</small>
+                                    </td>
+                                    <td>
+                                        {% for membership in benefit.membership_types.all %}
+                                            <span class="badge bg-secondary me-1">{{ membership.name }}</span>
+                                        {% empty %}
+                                            <span class="text-muted">None assigned</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>
+                                        {% if benefit.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>{{ benefit.created_at|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="editBenefit({{ benefit.id }}, '{{ benefit.name }}', '{{ benefit.description }}', '{{ benefit.benefit_type }}', {{ benefit.is_active|yesno:'true,false' }}, [{% for mt in benefit.membership_types.all %}{{ mt.id }}{% if not forloop.last %},{% endif %}{% endfor %}])">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteBenefit({{ benefit.id }}, '{{ benefit.name }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No benefits created yet</h5>
+                        <p class="text-muted">Create your first benefit to get started.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Benefit Modal -->
+<div class="modal fade" id="createBenefitModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Benefit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_benefit">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Benefit Name</label>
+                                <input type="text" name="name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Benefit Type</label>
+                                <select name="benefit_type" class="form-select" required>
+                                    <option value="">Select Type</option>
+                                    <option value="event_access">Event Access</option>
+                                    <option value="digital_content">Digital Content</option>
+                                    <option value="workspace_access">Workspace Access</option>
+                                    <option value="networking">Networking</option>
+                                    <option value="training">Training</option>
+                                    <option value="mentoring">Mentoring</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Available for Membership Types</label>
+                        <div class="row">
+                            {% for membership_type in membership_types %}
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="membership_types" 
+                                           value="{{ membership_type.id }}" id="mt_{{ membership_type.id }}">
+                                    <label class="form-check-label" for="mt_{{ membership_type.id }}">
+                                        {{ membership_type.name }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Benefit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Benefit Modal -->
+<div class="modal fade" id="editBenefitModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Benefit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_benefit">
+                <input type="hidden" name="benefit_id" id="edit_benefit_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Benefit Name</label>
+                                <input type="text" name="name" id="edit_benefit_name" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Benefit Type</label>
+                                <select name="benefit_type" id="edit_benefit_type" class="form-select" required>
+                                    <option value="event_access">Event Access</option>
+                                    <option value="digital_content">Digital Content</option>
+                                    <option value="workspace_access">Workspace Access</option>
+                                    <option value="networking">Networking</option>
+                                    <option value="training">Training</option>
+                                    <option value="mentoring">Mentoring</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" id="edit_benefit_description" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="edit_benefit_active">
+                            <label class="form-check-label" for="edit_benefit_active">
+                                Active
+                            </label>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Available for Membership Types</label>
+                        <div class="row" id="edit_membership_types">
+                            {% for membership_type in membership_types %}
+                            <div class="col-md-6">
+                                <div class="form-check">
+                                    <input class="form-check-input edit-mt-checkbox" type="checkbox" name="membership_types" 
+                                           value="{{ membership_type.id }}" id="edit_mt_{{ membership_type.id }}">
+                                    <label class="form-check-label" for="edit_mt_{{ membership_type.id }}">
+                                        {{ membership_type.name }}
+                                    </label>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Benefit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteBenefitModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Benefit</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the benefit "<span id="delete_benefit_name"></span>"?</p>
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_benefit">
+                    <input type="hidden" name="benefit_id" id="delete_benefit_id">
+                    <button type="submit" class="btn btn-danger">Delete Benefit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function editBenefit(id, name, description, type, isActive, membershipTypes) {
+    document.getElementById('edit_benefit_id').value = id;
+    document.getElementById('edit_benefit_name').value = name;
+    document.getElementById('edit_benefit_description').value = description;
+    document.getElementById('edit_benefit_type').value = type;
+    document.getElementById('edit_benefit_active').checked = isActive;
+    
+    // Reset all membership type checkboxes
+    document.querySelectorAll('.edit-mt-checkbox').forEach(checkbox => {
+        checkbox.checked = false;
+    });
+    
+    // Check the ones that are assigned
+    membershipTypes.forEach(mtId => {
+        const checkbox = document.getElementById('edit_mt_' + mtId);
+        if (checkbox) checkbox.checked = true;
+    });
+    
+    new bootstrap.Modal(document.getElementById('editBenefitModal')).show();
+}
+
+function deleteBenefit(id, name) {
+    document.getElementById('delete_benefit_id').value = id;
+    document.getElementById('delete_benefit_name').textContent = name;
+    new bootstrap.Modal(document.getElementById('deleteBenefitModal')).show();
+}
+</script>
+{% endblock %} 

@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class TogetherCultureAppConfig(AppConfig):
+class EventsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'together_culture_app'
+    name = 'events'

@@ -1,0 +1,244 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1 class="mb-4">Manage Members</h1>
+    </div>
+</div>
+
+<!-- Search and Filter -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-body">
+                <form method="GET" class="row g-3">
+                    <div class="col-md-3">
+                        <input type="text" name="search" class="form-control" placeholder="Search by username or email" value="{{ request.GET.search }}">
+                    </div>
+                    <div class="col-md-2">
+                        <select name="status" class="form-select">
+                            <option value="">All Status</option>
+                            <option value="authorized" {% if request.GET.status == 'authorized' %}selected{% endif %}>Authorized</option>
+                            <option value="unauthorized" {% if request.GET.status == 'unauthorized' %}selected{% endif %}>Unauthorized</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="interest" class="form-select">
+                            <option value="">All Interests</option>
+                            <option value="caring" {% if request.GET.interest == 'caring' %}selected{% endif %}>Caring</option>
+                            <option value="sharing" {% if request.GET.interest == 'sharing' %}selected{% endif %}>Sharing</option>
+                            <option value="creating" {% if request.GET.interest == 'creating' %}selected{% endif %}>Creating</option>
+                            <option value="experiencing" {% if request.GET.interest == 'experiencing' %}selected{% endif %}>Experiencing</option>
+                            <option value="working" {% if request.GET.interest == 'working' %}selected{% endif %}>Working</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2">
+                        <select name="membership" class="form-select">
+                            <option value="">All Memberships</option>
+                            {% for type in membership_types %}
+                                <option value="{{ type.name }}" {% if request.GET.membership == type.name %}selected{% endif %}>{{ type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{% url 'manage_members' %}" class="btn btn-outline-secondary">Clear</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Members Table -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5>Member Profiles ({{ members.count }})</h5>
+                <a href="/admin/members/memberprofile/add/" class="btn btn-success btn-sm">Add New Member</a>
+            </div>
+            <div class="card-body">
+                {% if members %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Username</th>
+                                    <th>Email</th>
+                                    <th>Interest</th>
+                                    <th>Membership Type</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for member in members %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ member.user.username }}</strong>
+                                        {% if member.user.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ member.user.email }}</td>
+                                    <td>
+                                        <span class="badge bg-info">{{ member.get_interests_display }}</span>
+                                    </td>
+                                    <td>
+                                        {% if member.membership_type %}
+                                            {{ member.membership_type.name }}
+                                        {% else %}
+                                            <span class="text-muted">Not assigned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if member.membership_type %}
+                                            <span class="badge bg-secondary">{{ member.membership_type.get_membership_category_display }}</span>
+                                        {% else %}
+                                            <span class="text-muted">-</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if member.status == 'authorized' %}
+                                            <span class="badge bg-success">Authorized</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Unauthorized</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ member.user.date_joined|date:"M d, Y" }}</td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button type="button" class="btn btn-sm btn-outline-primary" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#editModal{{ member.id }}">
+                                                Edit
+                                            </button>
+                                            <a href="{% url 'member_detail' member.id %}" class="btn btn-sm btn-outline-info">View</a>
+                                            {% if member.status == 'authorized' %}
+                                                <form method="POST" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="deauthorize">
+                                                    <input type="hidden" name="member_id" value="{{ member.id }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning" 
+                                                            onclick="return confirm('Deauthorize this member?')">
+                                                        Deauthorize
+                                                    </button>
+                                                </form>
+                                            {% else %}
+                                                <form method="POST" style="display: inline;">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="action" value="authorize">
+                                                    <input type="hidden" name="member_id" value="{{ member.id }}">
+                                                    <button type="submit" class="btn btn-sm btn-outline-success">
+                                                        Authorize
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                
+                                <!-- Edit Modal for each member -->
+                                <div class="modal fade" id="editModal{{ member.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Edit Member: {{ member.user.username }}</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form method="POST">
+                                                {% csrf_token %}
+                                                <input type="hidden" name="action" value="update_interests">
+                                                <input type="hidden" name="member_id" value="{{ member.id }}">
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Interest</label>
+                                                        <select name="interests" class="form-select">
+                                                            <option value="caring" {% if member.interests == 'caring' %}selected{% endif %}>Caring</option>
+                                                            <option value="sharing" {% if member.interests == 'sharing' %}selected{% endif %}>Sharing</option>
+                                                            <option value="creating" {% if member.interests == 'creating' %}selected{% endif %}>Creating</option>
+                                                            <option value="experiencing" {% if member.interests == 'experiencing' %}selected{% endif %}>Experiencing</option>
+                                                            <option value="working" {% if member.interests == 'working' %}selected{% endif %}>Working</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Membership Type</label>
+                                                        <select name="membership_type" class="form-select">
+                                                            <option value="">No membership type</option>
+                                                            {% for type in membership_types %}
+                                                                <option value="{{ type.id }}" {% if member.membership_type == type %}selected{% endif %}>
+                                                                    {{ type.name }} ({{ type.get_membership_category_display }})
+                                                                </option>
+                                                            {% endfor %}
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label class="form-label">Orientation Info</label>
+                                                        <textarea name="orientation_info" class="form-control" rows="3">{{ member.orientation_info }}</textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No members found.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Statistics -->
+<div class="row mt-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ total_members }}</h3>
+                <p class="card-text">Total Members</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ authorized_members }}</h3>
+                <p class="card-text">Authorized Members</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ community_members }}</h3>
+                <p class="card-text">Community Members</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-dark">
+            <div class="card-body">
+                <h3 class="card-title">{{ premium_members }}</h3>
+                <p class="card-text">Premium Members</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,269 @@
+{% extends 'admin_base.html' %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">Member Details</h1>
+            <a href="{% url 'manage_members' %}" class="btn btn-outline-primary">← Back to Members</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Member Information -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Username:</strong></div>
+                    <div class="col-sm-8">{{ member.user.username }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Email:</strong></div>
+                    <div class="col-sm-8">{{ member.user.email }}</div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Interest:</strong></div>
+                    <div class="col-sm-8">
+                        <span class="badge bg-info">{{ member.get_interests_display }}</span>
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Membership Type:</strong></div>
+                    <div class="col-sm-8">
+                        {% if member.membership_type %}
+                            {{ member.membership_type.name }}
+                        {% else %}
+                            <span class="text-muted">Not assigned</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Status:</strong></div>
+                    <div class="col-sm-8">
+                        {% if member.is_authorized %}
+                            <span class="badge bg-success">Authorized</span>
+                        {% else %}
+                            <span class="badge bg-warning">Unauthorized</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Account Status:</strong></div>
+                    <div class="col-sm-8">
+                        {% if member.user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Joined:</strong></div>
+                    <div class="col-sm-8">{{ member.user.date_joined|date:"F d, Y" }}</div>
+                </div>
+                {% if member.phone %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Phone:</strong></div>
+                    <div class="col-sm-8">{{ member.phone }}</div>
+                </div>
+                {% endif %}
+                {% if member.address %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Address:</strong></div>
+                    <div class="col-sm-8">{{ member.address }}</div>
+                </div>
+                {% endif %}
+                {% if member.bio %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Bio:</strong></div>
+                    <div class="col-sm-8">{{ member.bio }}</div>
+                </div>
+                {% endif %}
+                {% if member.orientation_info %}
+                <div class="row mb-3">
+                    <div class="col-sm-4"><strong>Orientation Info:</strong></div>
+                    <div class="col-sm-8">{{ member.orientation_info }}</div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Booking Statistics -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Booking Statistics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <div class="border rounded p-3">
+                            <h3 class="text-primary">{{ total_bookings }}</h3>
+                            <p class="mb-0">Total Bookings</p>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-3">
+                            <h3 class="text-success">{{ approved_bookings }}</h3>
+                            <p class="mb-0">Approved</p>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="border rounded p-3">
+                            <h3 class="text-warning">{{ pending_bookings }}</h3>
+                            <p class="mb-0">Pending</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Bookings -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Bookings</h5>
+            </div>
+            <div class="card-body">
+                {% if bookings %}
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Event</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Booked On</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for booking in bookings %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ booking.event.title }}</strong>
+                                        <br>
+                                        <small class="text-muted">{{ booking.event.location }}</small>
+                                    </td>
+                                    <td>{{ booking.event.date|date:"M d, Y" }}</td>
+                                    <td>
+                                        {% if booking.is_approved %}
+                                            <span class="badge bg-success">Approved</span>
+                                        {% else %}
+                                            <span class="badge bg-warning">Pending</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>{{ booking.booked_at|date:"M d, Y H:i" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <p class="text-muted">No bookings found for this member.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                {% if member.is_authorized %}
+                    <form method="POST" action="{% url 'manage_members' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="deauthorize">
+                        <input type="hidden" name="member_id" value="{{ member.id }}">
+                        <button type="submit" class="btn btn-warning me-2" 
+                                onclick="return confirm('Deauthorize this member?')">
+                            Deauthorize Member
+                        </button>
+                    </form>
+                {% else %}
+                    <form method="POST" action="{% url 'manage_members' %}" style="display: inline;">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="authorize">
+                        <input type="hidden" name="member_id" value="{{ member.id }}">
+                        <button type="submit" class="btn btn-success me-2">
+                            Authorize Member
+                        </button>
+                    </form>
+                {% endif %}
+                
+                <button type="button" class="btn btn-primary me-2" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#editModal">
+                    Edit Profile
+                </button>
+                
+                <a href="/admin/users/user/{{ member.user.id }}/change/" class="btn btn-info">
+                    Edit User Account
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Member Profile</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'manage_members' %}">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_interests">
+                <input type="hidden" name="member_id" value="{{ member.id }}">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Interest</label>
+                        <select name="interests" class="form-select">
+                            <option value="caring" {% if member.interests == 'caring' %}selected{% endif %}>Caring</option>
+                            <option value="sharing" {% if member.interests == 'sharing' %}selected{% endif %}>Sharing</option>
+                            <option value="creating" {% if member.interests == 'creating' %}selected{% endif %}>Creating</option>
+                            <option value="experiencing" {% if member.interests == 'experiencing' %}selected{% endif %}>Experiencing</option>
+                            <option value="working" {% if member.interests == 'working' %}selected{% endif %}>Working</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Membership Type</label>
+                        <select name="membership_type" class="form-select">
+                            <option value="">No membership type</option>
+                            {% for type in membership_types %}
+                                <option value="{{ type.id }}" {% if member.membership_type == type %}selected{% endif %}>
+                                    {{ type.name }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Orientation Info</label>
+                        <textarea name="orientation_info" class="form-control" rows="3">{{ member.orientation_info }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

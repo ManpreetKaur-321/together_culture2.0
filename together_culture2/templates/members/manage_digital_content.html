@@ -1,0 +1,266 @@
+{% extends 'admin_base.html' %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">Manage Digital Content</h1>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createDigitalContentModal">
+                <i class="fas fa-plus me-2"></i>Add New Content
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Digital Content Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ digital_events.count }}</h3>
+                <p class="card-text">Total Content</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ digital_events|length }}</h3>
+                <p class="card-text">Active Content</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-dark">
+            <div class="card-body">
+                <h3 class="card-title">{{ digital_events|length }}</h3>
+                <p class="card-text">This Month</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ digital_events|length }}</h3>
+                <p class="card-text">Total Views</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Digital Content List -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>All Digital Content</h5>
+            </div>
+            <div class="card-body">
+                {% if digital_events %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Title</th>
+                                    <th>Description</th>
+                                    <th>Content URL</th>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for event in digital_events %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ event.title }}</strong>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ event.description|truncatewords:15 }}</small>
+                                    </td>
+                                    <td>
+                                        <a href="{{ event.digital_content_url }}" target="_blank" class="text-primary">
+                                            <i class="fas fa-external-link-alt me-1"></i>View Content
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <small>{{ event.date|date:"M d, Y" }}</small>
+                                    </td>
+                                    <td>
+                                        {% if event.is_active %}
+                                            <span class="badge bg-success">Active</span>
+                                        {% else %}
+                                            <span class="badge bg-danger">Inactive</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="btn-group" role="group">
+                                            <button class="btn btn-sm btn-outline-primary" 
+                                                    onclick="editDigitalContent({{ event.id }}, '{{ event.title }}', '{{ event.description }}', '{{ event.digital_content_url }}', '{{ event.date|date:'Y-m-d' }}', {{ event.is_active|yesno:'true,false' }})">
+                                                <i class="fas fa-edit"></i>
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-danger" 
+                                                    onclick="deleteDigitalContent({{ event.id }}, '{{ event.title }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-laptop fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No digital content created yet</h5>
+                        <p class="text-muted">Create your first digital content to get started.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Digital Content Modal -->
+<div class="modal fade" id="createDigitalContentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Create New Digital Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="create_digital_event">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Content Title</label>
+                                <input type="text" name="title" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Content Date</label>
+                                <input type="date" name="event_date" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Content URL</label>
+                        <input type="url" name="content_url" class="form-control" placeholder="https://example.com/content" required>
+                        <small class="text-muted">Link to the digital content (video, document, etc.)</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Content</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Digital Content Modal -->
+<div class="modal fade" id="editDigitalContentModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Edit Digital Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="update_digital_event">
+                <input type="hidden" name="event_id" id="edit_event_id">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="mb-3">
+                                <label class="form-label">Content Title</label>
+                                <input type="text" name="title" id="edit_event_title" class="form-control" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Content Date</label>
+                                <input type="date" name="event_date" id="edit_event_date" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" id="edit_event_description" class="form-control" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Content URL</label>
+                        <input type="url" name="content_url" id="edit_event_content_url" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="is_active" id="edit_event_active">
+                            <label class="form-check-label" for="edit_event_active">
+                                Active
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update Content</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteDigitalContentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Delete Digital Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete the content "<span id="delete_event_title"></span>"?</p>
+                <p class="text-danger"><small>This action cannot be undone.</small></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="delete_digital_event">
+                    <input type="hidden" name="event_id" id="delete_event_id">
+                    <button type="submit" class="btn btn-danger">Delete Content</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function editDigitalContent(id, title, description, contentUrl, date, isActive) {
+    document.getElementById('edit_event_id').value = id;
+    document.getElementById('edit_event_title').value = title;
+    document.getElementById('edit_event_description').value = description;
+    document.getElementById('edit_event_content_url').value = contentUrl;
+    document.getElementById('edit_event_date').value = date;
+    document.getElementById('edit_event_active').checked = isActive;
+    
+    new bootstrap.Modal(document.getElementById('editDigitalContentModal')).show();
+}
+
+function deleteDigitalContent(id, title) {
+    document.getElementById('delete_event_id').value = id;
+    document.getElementById('delete_event_title').textContent = title;
+    new bootstrap.Modal(document.getElementById('deleteDigitalContentModal')).show();
+}
+</script>
+{% endblock %} 

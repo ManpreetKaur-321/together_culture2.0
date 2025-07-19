@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="mb-0">My Benefits Dashboard</h1>
+            <a href="{% url 'dashboard' %}" class="btn btn-outline-primary">← Back to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<!-- Benefits Overview -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center bg-primary text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ available_benefits.count }}</h3>
+                <p class="card-text">Available Benefits</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-success text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ used_benefits.count }}</h3>
+                <p class="card-text">Benefits Used</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-warning text-dark">
+            <div class="card-body">
+                <h3 class="card-title">{{ unused_benefits.count }}</h3>
+                <p class="card-text">Benefits Not Used</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center bg-info text-white">
+            <div class="card-body">
+                <h3 class="card-title">{{ member.membership_type.name|default:"No Plan" }}</h3>
+                <p class="card-text">Current Plan</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Available Benefits -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-gift me-2"></i>Available Benefits</h5>
+            </div>
+            <div class="card-body">
+                {% if available_benefits %}
+                    <div class="row">
+                        {% for benefit in available_benefits %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100 border-primary">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ benefit.name }}</h6>
+                                        <span class="badge bg-primary">{{ benefit.get_benefit_type_display }}</span>
+                                    </div>
+                                    <p class="card-text small text-muted">{{ benefit.description }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Added {{ benefit.created_at|date:"M d, Y" }}
+                                        </small>
+                                        <form method="POST" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="benefit_id" value="{{ benefit.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-success">
+                                                <i class="fas fa-check me-1"></i>Mark as Used
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-gift fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No benefits available</h5>
+                        <p class="text-muted">Benefits will appear here based on your membership type.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Used Benefits -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-check-circle me-2"></i>Benefits You've Used</h5>
+            </div>
+            <div class="card-body">
+                {% if used_benefits %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Benefit Name</th>
+                                    <th>Type</th>
+                                    <th>Description</th>
+                                    <th>Used On</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for usage in used_benefits %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ usage.benefit.name }}</strong>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">{{ usage.benefit.get_benefit_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">{{ usage.benefit.description|truncatewords:10 }}</small>
+                                    </td>
+                                    <td>
+                                        <small>{{ usage.used_at|date:"M d, Y H:i" }}</small>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-success">Used</span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-check-circle fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No benefits used yet</h5>
+                        <p class="text-muted">Start exploring your available benefits!</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Unused Benefits -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-clock me-2"></i>Unused Benefits</h5>
+            </div>
+            <div class="card-body">
+                {% if unused_benefits %}
+                    <div class="row">
+                        {% for benefit in unused_benefits %}
+                        <div class="col-md-6 col-lg-4 mb-3">
+                            <div class="card h-100 border-warning">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h6 class="card-title mb-0">{{ benefit.name }}</h6>
+                                        <span class="badge bg-warning">{{ benefit.get_benefit_type_display }}</span>
+                                    </div>
+                                    <p class="card-text small text-muted">{{ benefit.description }}</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">
+                                            <i class="fas fa-calendar me-1"></i>
+                                            Available since {{ benefit.created_at|date:"M d, Y" }}
+                                        </small>
+                                        <form method="POST" style="display: inline;">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="benefit_id" value="{{ benefit.id }}">
+                                            <button type="submit" class="btn btn-sm btn-outline-warning">
+                                                <i class="fas fa-play me-1"></i>Use Now
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-clock fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">All benefits used!</h5>
+                        <p class="text-muted">Great job! You've used all your available benefits.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Membership Info -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>Your Membership Information</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Current Plan</h6>
+                        <p class="mb-2">
+                            <strong>{{ member.membership_type.name|default:"No Plan Assigned" }}</strong>
+                        </p>
+                        {% if member.membership_type %}
+                            <p class="text-muted small">{{ member.membership_type.description }}</p>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Benefits Summary</h6>
+                        <ul class="list-unstyled">
+                            <li><i class="fas fa-check text-success me-2"></i>{{ used_benefits.count }} benefits used</li>
+                            <li><i class="fas fa-clock text-warning me-2"></i>{{ unused_benefits.count }} benefits remaining</li>
+                            <li><i class="fas fa-gift text-primary me-2"></i>{{ available_benefits.count }} total benefits</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 
