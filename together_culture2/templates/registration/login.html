@@ -1,19 +1,154 @@
 
 {% extends 'base.html' %}
 {% load widget_tweaks %}
+
 {% block content %}
-<div class="card p-4">
-    <h2 class="mb-4">Login</h2>
-    <form method="post">
-        {% csrf_token %}
-        {% for field in form %}
-        <div class="mb-3">
-            {{ field.label_tag }}
-            {{ field|add_class:'form-control' }}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-sign-in-alt me-2"></i>Welcome Back
+                </h3>
+                <p class="text-white-50 mb-0">Sign in to your Together Culture account</p>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-user me-1"></i>Username
+                        </label>
+                        {{ form.username|add_class:"form-control"|attr:"placeholder:Enter your username" }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-lock me-1"></i>Password
+                        </label>
+                        {{ form.password|add_class:"form-control"|attr:"placeholder:Enter your password" }}
+                        {% if form.password.errors %}
+                            <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Role Selection -->
+                    <div class="mb-4">
+                        <div class="form-check admin-checkbox">
+                            {{ form.is_admin|add_class:"form-check-input" }}
+                            <label class="form-check-label" for="{{ form.is_admin.id_for_label }}">
+                                <i class="fas fa-crown me-1"></i>{{ form.is_admin.label }}
+                            </label>
+                        </div>
+                        {% if form.is_admin.help_text %}
+                            <small class="text-muted">{{ form.is_admin.help_text }}</small>
+                        {% endif %}
+                        <div class="alert alert-info mt-2" role="alert">
+                            <i class="fas fa-info-circle me-1"></i>
+                            <small>Only users with administrator privileges can access the admin panel.</small>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-sign-in-alt me-2"></i>Sign In
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted mb-0">
+                        Don't have an account? 
+                        <a href="{% url 'register' %}" class="text-decoration-none fw-bold">
+                            <i class="fas fa-user-plus me-1"></i>Create Account
+                        </a>
+                    </p>
+                </div>
+            </div>
         </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">Login</button>
-    </form>
+
+        <!-- Login Info -->
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-info-circle me-2"></i>Login Options
+                </h5>
+                <div class="row mt-3">
+                    <div class="col-6">
+                        <div class="text-primary">
+                            <i class="fas fa-user fa-2x mb-2"></i>
+                            <p class="small mb-0">Member Login</p>
+                            <small class="text-muted">Access member features</small>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="text-warning">
+                            <i class="fas fa-crown fa-2x mb-2"></i>
+                            <p class="small mb-0">Admin Login</p>
+                            <small class="text-muted">Access admin panel</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-{% endblock %}
-{% load widget_tweaks %} 
+
+<style>
+    .card {
+        backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .form-control:focus {
+        transform: scale(1.02);
+    }
+    
+    .btn-lg {
+        padding: 15px 30px;
+        font-size: 1.1rem;
+    }
+    
+    .form-check-input:checked {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+    }
+    
+    .form-check-input:focus {
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 0.2rem rgba(135, 206, 235, 0.25);
+    }
+    
+    .text-decoration-none:hover {
+        color: var(--primary-color) !important;
+    }
+    
+    .admin-checkbox {
+        padding: 15px;
+        border: 2px solid #e9ecef;
+        border-radius: 15px;
+        background: rgba(255, 255, 255, 0.8);
+        transition: all 0.3s ease;
+    }
+    
+    .admin-checkbox:hover {
+        border-color: var(--primary-color);
+        background: rgba(135, 206, 235, 0.1);
+    }
+    
+    .admin-checkbox .form-check-label {
+        font-weight: 600;
+        color: var(--dark-color);
+    }
+    
+    .alert-info {
+        background: rgba(135, 206, 235, 0.1);
+        border: 1px solid rgba(135, 206, 235, 0.3);
+        color: var(--dark-color);
+    }
+</style>
+{% endblock %} 

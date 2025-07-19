@@ -16,8 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from users.views import register, CustomLoginView
-from django.contrib.auth.views import LogoutView
+from django.conf import settings
+from django.conf.urls.static import static
+from users.views import register, CustomLoginView, custom_logout
 from members.views import dashboard, cancel_booking, profile, manage_members, member_detail, benefits_dashboard, digital_content
 from events.views import event_list, book_event
 from dashboard.views import admin_dashboard, test_view, debug_admin_dashboard
@@ -26,7 +27,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('register/', register, name='register'),
     path('login/', CustomLoginView.as_view(), name='login'),
-    path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
+    path('logout/', custom_logout, name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
     path('dashboard/cancel/<int:booking_id>/', cancel_booking, name='cancel_booking'),
     path('profile/', profile, name='profile'),
@@ -40,3 +41,7 @@ urlpatterns = [
     path('manage-members/', manage_members, name='manage_members'),
     path('member-detail/<int:member_id>/', member_detail, name='member_detail'),
 ]
+
+# Serve media files in development
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

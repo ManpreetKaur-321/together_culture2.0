@@ -1,34 +1,162 @@
 {% extends 'base.html' %}
 {% load widget_tweaks %}
+
 {% block content %}
-<div class="card p-4">
-    <h2 class="mb-4">Register</h2>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            {{ user_form.username.label_tag }}
-            {{ user_form.username|add_class:'form-control' }}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+        <div class="card">
+            <div class="card-header text-center">
+                <h3 class="mb-0">
+                    <i class="fas fa-heart me-2"></i>Join Together Culture
+                </h3>
+                <p class="text-white-50 mb-0">Create your account and start your journey</p>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-user me-1"></i>First Name
+                                </label>
+                                {{ form.first_name|add_class:"form-control"|attr:"placeholder:Enter your first name" }}
+                                {% if form.first_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    <i class="fas fa-user me-1"></i>Last Name
+                                </label>
+                                {{ form.last_name|add_class:"form-control"|attr:"placeholder:Enter your last name" }}
+                                {% if form.last_name.errors %}
+                                    <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-at me-1"></i>Username
+                        </label>
+                        {{ form.username|add_class:"form-control"|attr:"placeholder:Choose a username" }}
+                        {% if form.username.errors %}
+                            <div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-envelope me-1"></i>Email Address
+                        </label>
+                        {{ form.email|add_class:"form-control"|attr:"placeholder:Enter your email" }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-lock me-1"></i>Password
+                        </label>
+                        {{ form.password1|add_class:"form-control"|attr:"placeholder:Create a strong password" }}
+                        {% if form.password1.errors %}
+                            <div class="text-danger small mt-1">{{ form.password1.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-lock me-1"></i>Confirm Password
+                        </label>
+                        {{ form.password2|add_class:"form-control"|attr:"placeholder:Confirm your password" }}
+                        {% if form.password2.errors %}
+                            <div class="text-danger small mt-1">{{ form.password2.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <i class="fas fa-heart me-1"></i>Interest Area
+                        </label>
+                        {{ form.interests|add_class:"form-select" }}
+                        {% if form.interests.errors %}
+                            <div class="text-danger small mt-1">{{ form.interests.errors.0 }}</div>
+                        {% endif %}
+                        <small class="text-muted">What interests you most in our community?</small>
+                    </div>
+
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary btn-lg">
+                            <i class="fas fa-user-plus me-2"></i>Create Account
+                        </button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-4">
+                    <p class="text-muted mb-0">
+                        Already have an account? 
+                        <a href="{% url 'login' %}" class="text-decoration-none fw-bold">
+                            <i class="fas fa-sign-in-alt me-1"></i>Sign In
+                        </a>
+                    </p>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            {{ user_form.email.label_tag }}
-            {{ user_form.email|add_class:'form-control' }}
+
+        <!-- Benefits Preview -->
+        <div class="card mt-4">
+            <div class="card-body text-center">
+                <h5 class="card-title">
+                    <i class="fas fa-star me-2"></i>Why Join Together Culture?
+                </h5>
+                <div class="row mt-3">
+                    <div class="col-4">
+                        <div class="text-primary">
+                            <i class="fas fa-users fa-2x mb-2"></i>
+                            <p class="small mb-0">Community</p>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-success">
+                            <i class="fas fa-lightbulb fa-2x mb-2"></i>
+                            <p class="small mb-0">Creativity</p>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="text-warning">
+                            <i class="fas fa-handshake fa-2x mb-2"></i>
+                            <p class="small mb-0">Collaboration</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            {{ user_form.password1.label_tag }}
-            {{ user_form.password1|add_class:'form-control' }}
-        </div>
-        <div class="mb-3">
-            {{ user_form.password2.label_tag }}
-            {{ user_form.password2|add_class:'form-control' }}
-        </div>
-        {% for field in profile_form %}
-        <div class="mb-3">
-            {{ field.label_tag }}
-            {{ field|add_class:'form-control' }}
-        </div>
-        {% endfor %}
-        <button type="submit" class="btn btn-primary">Register</button>
-    </form>
+    </div>
 </div>
-{% endblock %}
-{% load widget_tweaks %} 
+
+<style>
+    .card {
+        backdrop-filter: blur(20px);
+        background: rgba(255, 255, 255, 0.95);
+    }
+    
+    .form-control:focus, .form-select:focus {
+        transform: scale(1.02);
+    }
+    
+    .btn-lg {
+        padding: 15px 30px;
+        font-size: 1.1rem;
+    }
+    
+    .text-decoration-none:hover {
+        color: var(--primary-color) !important;
+    }
+</style>
+{% endblock %} 

@@ -59,6 +59,13 @@ def profile(request):
         member.address = request.POST.get('address', member.address)
         member.orientation_info = request.POST.get('orientation_info', member.orientation_info)
         
+        # Handle date of birth
+        date_of_birth = request.POST.get('date_of_birth')
+        if date_of_birth:
+            member.date_of_birth = date_of_birth
+        elif date_of_birth == '':
+            member.date_of_birth = None
+        
         # Update membership type if provided
         membership_type_id = request.POST.get('membership_type')
         if membership_type_id:
