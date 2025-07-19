@@ -7,6 +7,7 @@ from .models import MemberProfile, MembershipType, Benefit, MemberBenefitUsage
 from bookings.models import Booking
 from events.models import Event
 from users.models import User
+from django.db import models
 
 # Create your views here.
 
@@ -147,7 +148,35 @@ def manage_members(request):
         messages.error(request, 'Access denied. Admin privileges required.')
         return redirect('dashboard')
     
+    # Get all members for base query
     members = MemberProfile.objects.all().order_by('-user__date_joined')
+    
+    # Apply search filters
+    search = request.GET.get('search')
+    status = request.GET.get('status')
+    interest = request.GET.get('interest')
+    membership = request.GET.get('membership')
+    
+    if search:
+        members = members.filter(
+            models.Q(user__username__icontains=search) |
+            models.Q(user__email__icontains=search) |
+            models.Q(user__first_name__icontains=search) |
+            models.Q(user__last_name__icontains=search)
+        )
+    
+    if status:
+        if status == 'authorized':
+            members = members.filter(status='authorized')
+        elif status == 'unauthorized':
+            members = members.filter(status='pending')
+    
+    if interest:
+        members = members.filter(interests=interest)
+    
+    if membership:
+        members = members.filter(membership_type__name__icontains=membership)
+    
     membership_types = MembershipType.objects.all()
     
     if request.method == 'POST':
@@ -178,9 +207,21 @@ def manage_members(request):
             member.save()
             messages.success(request, f'Member {member.user.username} profile updated.')
     
+    # Calculate dynamic statistics
+    total_members = MemberProfile.objects.count()
+    authorized_members = MemberProfile.objects.filter(status='authorized').count()
+    community_members = MemberProfile.objects.filter(membership_type__name__icontains='community').count()
+    premium_members = MemberProfile.objects.filter(
+        membership_type__name__in=['key_access', 'creative_workspace']
+    ).count()
+    
     context = {
         'members': members,
         'membership_types': membership_types,
+        'total_members': total_members,
+        'authorized_members': authorized_members,
+        'community_members': community_members,
+        'premium_members': premium_members,
     }
     return render(request, 'members/manage_members.html', context)
 

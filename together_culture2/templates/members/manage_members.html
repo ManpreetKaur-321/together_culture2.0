@@ -35,13 +35,16 @@
                     <div class="col-md-2">
                         <select name="membership" class="form-select">
                             <option value="">All Memberships</option>
-                            <option value="community" {% if request.GET.membership == 'community' %}selected{% endif %}>Community Members</option>
-                            <option value="key_access" {% if request.GET.membership == 'key_access' %}selected{% endif %}>Key Access Members</option>
-                            <option value="creative_workspace" {% if request.GET.membership == 'creative_workspace' %}selected{% endif %}>Creative Workspace Members</option>
+                            {% for type in membership_types %}
+                                <option value="{{ type.name }}" {% if request.GET.membership == type.name %}selected{% endif %}>{{ type.name }}</option>
+                            {% endfor %}
                         </select>
                     </div>
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100">Filter</button>
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">Filter</button>
+                            <a href="{% url 'manage_members' %}" class="btn btn-outline-secondary">Clear</a>
+                        </div>
                     </div>
                 </form>
             </div>
@@ -103,7 +106,7 @@
                                         {% endif %}
                                     </td>
                                     <td>
-                                        {% if member.is_authorized %}
+                                        {% if member.status == 'authorized' %}
                                             <span class="badge bg-success">Authorized</span>
                                         {% else %}
                                             <span class="badge bg-warning">Unauthorized</span>
@@ -118,7 +121,7 @@
                                                 Edit
                                             </button>
                                             <a href="{% url 'member_detail' member.id %}" class="btn btn-sm btn-outline-info">View</a>
-                                            {% if member.is_authorized %}
+                                            {% if member.status == 'authorized' %}
                                                 <form method="POST" style="display: inline;">
                                                     {% csrf_token %}
                                                     <input type="hidden" name="action" value="deauthorize">
@@ -208,7 +211,7 @@
     <div class="col-md-3">
         <div class="card text-center bg-primary text-white">
             <div class="card-body">
-                <h3 class="card-title">{{ members.count }}</h3>
+                <h3 class="card-title">{{ total_members }}</h3>
                 <p class="card-text">Total Members</p>
             </div>
         </div>
@@ -216,7 +219,7 @@
     <div class="col-md-3">
         <div class="card text-center bg-success text-white">
             <div class="card-body">
-                <h3 class="card-title">{{ members|length }}</h3>
+                <h3 class="card-title">{{ authorized_members }}</h3>
                 <p class="card-text">Authorized Members</p>
             </div>
         </div>
@@ -224,7 +227,7 @@
     <div class="col-md-3">
         <div class="card text-center bg-info text-white">
             <div class="card-body">
-                <h3 class="card-title">{{ members|length }}</h3>
+                <h3 class="card-title">{{ community_members }}</h3>
                 <p class="card-text">Community Members</p>
             </div>
         </div>
@@ -232,7 +235,7 @@
     <div class="col-md-3">
         <div class="card text-center bg-warning text-dark">
             <div class="card-body">
-                <h3 class="card-title">{{ members|length }}</h3>
+                <h3 class="card-title">{{ premium_members }}</h3>
                 <p class="card-text">Premium Members</p>
             </div>
         </div>
