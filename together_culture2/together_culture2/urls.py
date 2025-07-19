@@ -18,7 +18,9 @@ from django.contrib import admin
 from django.urls import path
 from users.views import register, CustomLoginView
 from django.contrib.auth.views import LogoutView
-from members.views import dashboard
+from members.views import dashboard, cancel_booking
+from events.views import event_list, book_event
+from dashboard.views import admin_dashboard, test_view, debug_admin_dashboard
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -26,4 +28,10 @@ urlpatterns = [
     path('login/', CustomLoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(next_page='login'), name='logout'),
     path('dashboard/', dashboard, name='dashboard'),
+    path('dashboard/cancel/<int:booking_id>/', cancel_booking, name='cancel_booking'),
+    path('events/', event_list, name='event_list'),
+    path('events/book/<int:event_id>/', book_event, name='book_event'),
+    path('test-dashboard/', test_view, name='test_dashboard'),
+    path('debug-admin/', debug_admin_dashboard, name='debug_admin_dashboard'),
+    path('admin-dashboard/', admin_dashboard, name='admin_dashboard'),
 ]

@@ -8,6 +8,7 @@ class Booking(models.Model):
     member = models.ForeignKey(MemberProfile, on_delete=models.CASCADE)
     event = models.ForeignKey(Event, on_delete=models.CASCADE)
     booked_at = models.DateTimeField(auto_now_add=True)
+    is_approved = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.member.user.username} booked {self.event.title}"
